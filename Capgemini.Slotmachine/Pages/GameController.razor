@@ -1,0 +1,54 @@
+﻿@page "/game-controller" 
+@using Microsoft.AspNetCore.SignalR.Client
+@using Capgemini.Slotmachine.BackgroundServices
+@implements IAsyncDisposable
+@inject NavigationManager NavigationManager
+
+<h3>GameController</h3>
+
+@for (var i = 0; i < Buttons.Length; i++)
+{
+    <Button Id="@i" State="@Buttons[i]"></Button>
+}
+
+@code {
+    private HubConnection? _hubConnection;
+
+    private bool[] Buttons { get; set; } = new bool[12];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/game-controller-hub"))
+            .Build();
+
+        _hubConnection.On<int>("ButtonPressed", buttonId =>
+        {   
+            if (buttonId < Buttons.Length)
+            {
+                Buttons[buttonId] = true;
+            }
+            InvokeAsync(StateHasChanged);
+        });        
+        
+        _hubConnection.On<int>("ButtonReleased", buttonId =>
+        {
+            if (buttonId < Buttons.Length)
+            {
+                Buttons[buttonId] = false;
+            }
+            InvokeAsync(StateHasChanged);
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+
+}
