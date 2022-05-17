@@ -1,4 +1,3 @@
-using Capgemini.Slotmachine.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using Windows.Gaming.Input;
 using Capgemini.Slotmachine.BackgroundServices;
@@ -9,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddHttpClient();
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

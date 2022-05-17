@@ -9,20 +9,25 @@ namespace Capgemini.Slotmachine.BackgroundServices
         private readonly Func<RawGameController, bool> _gameControllerSelector;
         private readonly IHubContext<GameControllerHub> _hubContext;
         private readonly ILogger<GameControllerBackgroundService> _logger;
+        private readonly HttpClient _httpClient;
 
         private RawGameController? _gameController;
         private (ulong timestamp, bool[] buttons, GameControllerSwitchPosition[] switches, double[] axis) _lastReadState;
 
         public TimeSpan Resolution = TimeSpan.FromMilliseconds(10);
+        public bool state = false;
 
         public GameControllerBackgroundService(
             Func<RawGameController, bool> gameControllerSelector, 
             IHubContext<GameControllerHub> hubContext,
-            ILogger<GameControllerBackgroundService> logger)
+            ILogger<GameControllerBackgroundService> logger,
+            HttpClient httpClient)
         {
             _gameControllerSelector = gameControllerSelector;
             _hubContext = hubContext;
             _logger = logger;
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri("http://localhost:5000");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -72,17 +77,20 @@ namespace Capgemini.Slotmachine.BackgroundServices
                         {
                             if (buttons[i] && !_lastReadState.buttons[i])
                             {
+                                //POST True
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonPressed", i, stoppingToken)
                                     .ConfigureAwait(false);
                                 
+                                
                             }
                             else if (!buttons[i] && _lastReadState.buttons[i])
                             {
-                                //POST
+                                //POST False
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonReleased", i, stoppingToken)
                                     .ConfigureAwait(false);
+                                
                             }
                         }
 
