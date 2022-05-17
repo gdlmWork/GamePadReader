@@ -81,8 +81,14 @@ namespace Capgemini.Slotmachine.BackgroundServices
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonPressed", i, stoppingToken)
                                     .ConfigureAwait(false);
-                                
-                                
+
+                                state = true;
+                                HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                                    $"buttonstate", state);
+                                response.EnsureSuccessStatusCode();
+                               
+                                state = await response.Content.ReadAsAsync<bool>();
+
                             }
                             else if (!buttons[i] && _lastReadState.buttons[i])
                             {
@@ -90,7 +96,13 @@ namespace Capgemini.Slotmachine.BackgroundServices
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonReleased", i, stoppingToken)
                                     .ConfigureAwait(false);
-                                
+
+                                state = false;
+                                HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                                    $"buttonstate", state);
+                                response.EnsureSuccessStatusCode();
+                                state = await response.Content.ReadAsAsync<bool>();
+
                             }
                         }
 
