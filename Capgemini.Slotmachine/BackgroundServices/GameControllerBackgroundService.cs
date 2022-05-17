@@ -1,4 +1,5 @@
 ﻿using Capgemini.Slotmachine.Hubs;
+using Capgemini.Slotmachine.Models;
 using Microsoft.AspNetCore.SignalR;
 using Windows.Gaming.Input;
 
@@ -9,25 +10,24 @@ namespace Capgemini.Slotmachine.BackgroundServices
         private readonly Func<RawGameController, bool> _gameControllerSelector;
         private readonly IHubContext<GameControllerHub> _hubContext;
         private readonly ILogger<GameControllerBackgroundService> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly StateHttpClient _httpClient;
 
         private RawGameController? _gameController;
         private (ulong timestamp, bool[] buttons, GameControllerSwitchPosition[] switches, double[] axis) _lastReadState;
 
         public TimeSpan Resolution = TimeSpan.FromMilliseconds(10);
-        public bool state = false;
+        public ButtonState state = new ButtonState { ButtonReleased = false };
 
         public GameControllerBackgroundService(
             Func<RawGameController, bool> gameControllerSelector, 
             IHubContext<GameControllerHub> hubContext,
             ILogger<GameControllerBackgroundService> logger,
-            HttpClient httpClient)
+            StateHttpClient httpClient)
         {
             _gameControllerSelector = gameControllerSelector;
             _hubContext = hubContext;
             _logger = logger;
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("http://localhost:5000");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -82,12 +82,13 @@ namespace Capgemini.Slotmachine.BackgroundServices
                                     .SendAsync("ButtonPressed", i, stoppingToken)
                                     .ConfigureAwait(false);
 
-                                state = true;
-                                HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
-                                    $"buttonstate", state);
-                                response.EnsureSuccessStatusCode();
-                               
-                                state = await response.Content.ReadAsAsync<bool>();
+                                state.ButtonReleased = true;
+                                _httpClient.PostState(state);
+                                //HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                                //    $"buttonstate", state);
+                                //response.EnsureSuccessStatusCode();
+                                //
+                                //state = await response.Content.ReadAsAsync<bool>();
 
                             }
                             else if (!buttons[i] && _lastReadState.buttons[i])
@@ -97,11 +98,12 @@ namespace Capgemini.Slotmachine.BackgroundServices
                                     .SendAsync("ButtonReleased", i, stoppingToken)
                                     .ConfigureAwait(false);
 
-                                state = false;
-                                HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
-                                    $"buttonstate", state);
-                                response.EnsureSuccessStatusCode();
-                                state = await response.Content.ReadAsAsync<bool>();
+                                state.ButtonReleased = false;
+                                _httpClient.PostState(state);
+                                //HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
+                                //    $"buttonstate", state);
+                                //response.EnsureSuccessStatusCode();
+                                //state = await response.Content.ReadAsAsync<bool>();
 
                             }
                         }

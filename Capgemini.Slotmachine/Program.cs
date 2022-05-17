@@ -8,7 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<StateHttpClient>(
+    client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:5000");
+    });
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
