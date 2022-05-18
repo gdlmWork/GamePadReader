@@ -84,11 +84,6 @@ namespace Capgemini.Slotmachine.BackgroundServices
 
                                 state.ButtonReleased = true;
                                 _httpClient.PostState(state);
-                                //HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
-                                //    $"buttonstate", state);
-                                //response.EnsureSuccessStatusCode();
-                                //
-                                //state = await response.Content.ReadAsAsync<bool>();
 
                             }
                             else if (!buttons[i] && _lastReadState.buttons[i])
@@ -99,11 +94,11 @@ namespace Capgemini.Slotmachine.BackgroundServices
                                     .ConfigureAwait(false);
 
                                 state.ButtonReleased = false;
+
+                                //Give chance for Java side to Get the true state
+                                await Task.Delay(TimeSpan.FromSeconds(10));
+
                                 _httpClient.PostState(state);
-                                //HttpResponseMessage response = await _httpClient.PutAsJsonAsync(
-                                //    $"buttonstate", state);
-                                //response.EnsureSuccessStatusCode();
-                                //state = await response.Content.ReadAsAsync<bool>();
 
                             }
                         }
