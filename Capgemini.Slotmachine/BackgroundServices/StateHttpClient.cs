@@ -12,7 +12,7 @@ namespace Capgemini.Slotmachine.BackgroundServices
 
         public async void  PostState(ButtonState state)
         {
-            await _httpClient.PutAsJsonAsync<ButtonState>("/buttonstate", state);
+            await _httpClient.PostAsJsonAsync<ButtonState>("/buttonstate", state);
         }
     }
 }
