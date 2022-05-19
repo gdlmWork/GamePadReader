@@ -12,7 +12,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient<StateHttpClient>(
     client =>
     {
-        client.BaseAddress = new Uri("http://localhost:5000");
+        client.BaseAddress = new Uri("http://localhost:6000");
     });
 builder.Services.AddResponseCompression(opts =>
 {
