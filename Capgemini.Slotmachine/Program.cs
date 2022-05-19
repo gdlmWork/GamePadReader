@@ -4,7 +4,7 @@ using Capgemini.Slotmachine.BackgroundServices;
 using Capgemini.Slotmachine.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("https://localhost:7001", "http://localhost:7000");
+builder.WebHost.UseUrls("http://localhost:7000");
 
 // Add services to the container.
 builder.Services.AddRazorPages();
