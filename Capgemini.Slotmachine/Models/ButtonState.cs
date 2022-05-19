@@ -1,6 +1,6 @@
 ﻿using Windows.Gaming.Input;
 
-namespace SlotmachineRequest.Models
+namespace Capgemini.Slotmachine.Models
 {
     public class ButtonState
     {

@@ -1,15 +1,19 @@
-using Capgemini.Slotmachine.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using Windows.Gaming.Input;
 using Capgemini.Slotmachine.BackgroundServices;
 using Capgemini.Slotmachine.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:7000");
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddHttpClient<StateHttpClient>(
+    client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:6000");
+    });
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

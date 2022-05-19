@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SlotmachineRequest.Models;
+using SlotmachineRequest.Services;
 using System.Text.Json;
 
 namespace SlotmachineRequest.Controllers
@@ -8,28 +9,28 @@ namespace SlotmachineRequest.Controllers
     [Route("buttonstate")]
     public class ButtonStateController : ControllerBase
     {
-        public ButtonState state;
         private readonly ILogger<ButtonStateController> _logger;
+        private IButtonStateservice _btnservice;
         
-        public ButtonStateController(ILogger<ButtonStateController> logger)
+        public ButtonStateController(ILogger<ButtonStateController> logger, IButtonStateservice btnservice)
         {
             _logger = logger;
+            _btnservice = btnservice;
         }
 
         [HttpPost]
         public void PostButtonState(ButtonState state)
         {
-            this.state = state;
-            _logger.LogInformation(JsonSerializer.Serialize(this.state));
-            //Console.Write(state.ToString());
-            //Console.Write(this.state.ToString());
+            //buttonState = state;
+            _btnservice.ChangeState(state);
+            _logger.LogInformation(JsonSerializer.Serialize(_btnservice.GetState()));
         }
 
         [HttpGet]
         public IActionResult GetButtonState()
         {
-            //Console.Write(this.state.ToString());
-            return Ok(JsonSerializer.Serialize(this.state));
+            _logger.LogInformation(JsonSerializer.Serialize(_btnservice.GetState()));
+            return Ok(_btnservice.GetState());
         }
     }
 }

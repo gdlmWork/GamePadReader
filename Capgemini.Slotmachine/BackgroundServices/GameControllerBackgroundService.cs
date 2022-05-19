@@ -1,4 +1,5 @@
 ﻿using Capgemini.Slotmachine.Hubs;
+using Capgemini.Slotmachine.Models;
 using Microsoft.AspNetCore.SignalR;
 using Windows.Gaming.Input;
 
@@ -9,20 +10,24 @@ namespace Capgemini.Slotmachine.BackgroundServices
         private readonly Func<RawGameController, bool> _gameControllerSelector;
         private readonly IHubContext<GameControllerHub> _hubContext;
         private readonly ILogger<GameControllerBackgroundService> _logger;
+        private readonly StateHttpClient _httpClient;
 
         private RawGameController? _gameController;
         private (ulong timestamp, bool[] buttons, GameControllerSwitchPosition[] switches, double[] axis) _lastReadState;
 
         public TimeSpan Resolution = TimeSpan.FromMilliseconds(10);
+        public ButtonState state = new ButtonState { ButtonReleased = false };
 
         public GameControllerBackgroundService(
             Func<RawGameController, bool> gameControllerSelector, 
             IHubContext<GameControllerHub> hubContext,
-            ILogger<GameControllerBackgroundService> logger)
+            ILogger<GameControllerBackgroundService> logger,
+            StateHttpClient httpClient)
         {
             _gameControllerSelector = gameControllerSelector;
             _hubContext = hubContext;
             _logger = logger;
+            _httpClient = httpClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -72,17 +77,29 @@ namespace Capgemini.Slotmachine.BackgroundServices
                         {
                             if (buttons[i] && !_lastReadState.buttons[i])
                             {
+                                //POST True
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonPressed", i, stoppingToken)
                                     .ConfigureAwait(false);
-                                
+
+                                state.ButtonReleased = true;
+                                _httpClient.PostState(state);
+
                             }
                             else if (!buttons[i] && _lastReadState.buttons[i])
                             {
-                                //POST
+                                //POST False
                                 await _hubContext.Clients.All
                                     .SendAsync("ButtonReleased", i, stoppingToken)
                                     .ConfigureAwait(false);
+
+                                state.ButtonReleased = false;
+
+                                //Give chance for Java side to Get the true state
+                                await Task.Delay(TimeSpan.FromSeconds(10));
+
+                                _httpClient.PostState(state);
+
                             }
                         }
 
